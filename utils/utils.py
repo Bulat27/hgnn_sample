@@ -156,12 +156,35 @@ def set_up_distributed_training_slurm(args):
                                      world_size=args.world_size,
                                      rank=args.distributed_rank) 
 
-def set_up_distributed_training_multi_gpu(args): 
-    args.device_id = args.local_rank
-    th.cuda.set_device(args.device_id)
-    args.distributed_rank = args.device_id
-    th.distributed.init_process_group(backend='nccl',
-                                         init_method='env://')
+# def set_up_distributed_training_multi_gpu(args): 
+#     args.device_id = args.local_rank
+#     th.cuda.set_device(args.device_id)
+#     args.distributed_rank = args.device_id
+#     th.distributed.init_process_group(backend='nccl',
+#                                          init_method='env://')
+	
+def set_up_distributed_training_multi_gpu(args):
+    # Verify if CUDA is available
+    assert th.cuda.is_available(), "CUDA is not available. Check your environment setup."
+    
+    # Log local rank
+    print(f"Process {os.getpid()} | Local rank: {args.local_rank}")
+    
+    # Set device according to local_rank
+    if args.local_rank is not None:
+        args.device_id = args.local_rank
+        th.cuda.set_device(args.device_id)
+        print(f"Process {args.local_rank}: Device set to {args.device_id}")
+    else:
+        raise ValueError("local_rank is None, please check the distributed launch.")
+    
+    # Initialize the process group for distributed training
+    th.distributed.init_process_group(backend='nccl', init_method='env://')
+    args.distributed_rank = th.distributed.get_rank()
+    print(f"Process {args.local_rank}: Distributed rank {args.distributed_rank}")
+
+    # Verify the current device
+    print(f"Process {args.local_rank}: Using device {th.cuda.current_device()} - {th.cuda.get_device_name(th.cuda.current_device())}")
 
 def save_model_weights(args, model, path):
 	"""
