@@ -91,11 +91,11 @@ class BaseTask(object):
 			test_sampler = DistributedSampler(test_dataset, num_replicas=self.args.world_size, rank=self.args.distributed_rank)
 		else:
 			train_sampler, dev_sampler, test_sampler = None, None, None
-		train_loader = DataLoader(train_dataset, batch_size=1, collate_fn=collate_fn,
+		train_loader = DataLoader(train_dataset, batch_size=16, collate_fn=collate_fn,
                                          num_workers=0, sampler=train_sampler)
-		dev_loader = DataLoader(dev_dataset, batch_size=1, collate_fn=collate_fn,
+		dev_loader = DataLoader(dev_dataset, batch_size=16, collate_fn=collate_fn,
                                          num_workers=0, sampler=dev_sampler)
-		test_loader = DataLoader(test_dataset, batch_size=1, collate_fn=collate_fn,
+		test_loader = DataLoader(test_dataset, batch_size=16, collate_fn=collate_fn,
                                          num_workers=0, sampler=test_sampler)
 		self.logger.info("train data size: %d" % len(train_dataset))
 		self.logger.info("dev data size: %d" % len(dev_dataset))
