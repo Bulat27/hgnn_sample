@@ -163,8 +163,12 @@ def set_up_distributed_training_multi_gpu(args):
     
     # Initialize the process group for distributed training
     th.distributed.init_process_group(backend='nccl', init_method='env://')
+    
+    # Set distributed rank and world size
     args.distributed_rank = th.distributed.get_rank()
-    print(f"Process {args.device_id}: Distributed rank {args.distributed_rank}")
+    args.world_size = th.distributed.get_world_size()
+    print(f"Process {args.device_id}: Distributed rank {args.distributed_rank}, World size {args.world_size}")
+
 
 
 def save_model_weights(args, model, path):
