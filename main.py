@@ -47,8 +47,8 @@ def parse_default_args():
     parser.add_argument('--select_manifold', type=str, default='lorentz', choices=['poincare', 'lorentz', 'euclidean'])
     parser.add_argument('--seed', type=int, default=int(time.time()))
     # for distributed training
-    parser.add_argument('--world_size', type=int)
-    parser.add_argument("--local_rank", type=int)
+    # parser.add_argument('--world_size', type=int)
+    # parser.add_argument("--local_rank", type=int)
     parser.add_argument("--distributed_method", default='multi_gpu', choices=['multi_gpu', 'slurm'])
     args, _ = parser.parse_known_args()
     # model-specific params
