@@ -138,23 +138,21 @@ def normalize_weight(adj_mat, weight):
 			src = adj_mat[dst][src_idx]
 			weight[dst][src_idx] = degree[dst] * weight[dst][src_idx] * degree[src]
 
-def set_up_distributed_training_slurm(args):
-    # get node and host
-    node_list = os.environ.get('SLURM_JOB_NODELIST')
-    hostnames = subprocess.check_output(['scontrol', 'show', 'hostnames', node_list])
-    # master id
-    args.distributed_init_method = 'tcp://{host}:{port}'.format(
-                    host=hostnames.split()[0].decode('utf-8'),
-                    port=13349)
-   	# global id 
-    args.distributed_rank = int(os.environ.get('SLURM_PROCID'))
-    # id on the local machine
-    args.device_id = int(os.environ.get('SLURM_LOCALID'))
+def set_up_distributed_training_multi_gpu(args):
+    # Get local_rank from environment variables (used by torchrun)
+    if 'LOCAL_RANK' in os.environ:
+        args.device_id = int(os.environ['LOCAL_RANK'])
+    else:
+        raise ValueError("LOCAL_RANK environment variable not set.")
+    
+    # Set device based on local rank
     th.cuda.set_device(args.device_id)
-    th.distributed.init_process_group(backend='nccl',
-                                     init_method=args.distributed_init_method,
-                                     world_size=args.world_size,
-                                     rank=args.distributed_rank) 
+    print(f"Process {os.getpid()}: Local rank: {args.device_id}")
+    
+    # Initialize the process group for distributed training
+    th.distributed.init_process_group(backend='nccl', init_method='env://')
+    args.distributed_rank = th.distributed.get_rank()
+    print(f"Process {args.device_id}: Distributed rank {args.distributed_rank}")
 
 # def set_up_distributed_training_multi_gpu(args): 
 #     args.device_id = args.local_rank
