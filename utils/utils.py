@@ -138,12 +138,17 @@ def normalize_weight(adj_mat, weight):
 			src = adj_mat[dst][src_idx]
 			weight[dst][src_idx] = degree[dst] * weight[dst][src_idx] * degree[src]
 
+import torch as th
+import os
+
 def set_up_distributed_training_multi_gpu(args):
     # Get local_rank from environment variables (used by torchrun)
-    if 'LOCAL_RANK' in os.environ:
-        args.device_id = int(os.environ['LOCAL_RANK'])
-    else:
+    local_rank = os.environ.get('LOCAL_RANK', None)
+    if local_rank is None:
         raise ValueError("LOCAL_RANK environment variable not set.")
+    
+    # Convert local_rank to integer
+    args.device_id = int(local_rank)
     
     # Set device based on local rank
     th.cuda.set_device(args.device_id)
@@ -153,6 +158,7 @@ def set_up_distributed_training_multi_gpu(args):
     th.distributed.init_process_group(backend='nccl', init_method='env://')
     args.distributed_rank = th.distributed.get_rank()
     print(f"Process {args.device_id}: Distributed rank {args.distributed_rank}")
+
 
 # def set_up_distributed_training_multi_gpu(args): 
 #     args.device_id = args.local_rank
